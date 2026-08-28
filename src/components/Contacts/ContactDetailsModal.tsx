@@ -10,8 +10,8 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PhoneContact, ContactsService } from '../../services/ContactsService';
+import { StorageService } from '../../services/StorageService';
 import { ActionService } from '../../services/ActionService';
 import { useLanguage } from '../../services/LanguageContext';
 
@@ -36,28 +36,16 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
   useEffect(() => {
     if (contact) {
       setIsFavorite(!!contact.isFavorite);
-      loadNote(contact.id);
+      const savedNote = StorageService.getContactNote(contact.id);
+      setNote(savedNote);
     }
   }, [contact]);
 
-  const loadNote = async (contactId: string) => {
-    try {
-      const saved = await AsyncStorage.getItem(`@contact_note_${contactId}`);
-      setNote(saved || '');
-    } catch (e) {
-      setNote('');
-    }
-  };
-
-  const handleSaveNote = async () => {
+  const handleSaveNote = () => {
     if (!contact) return;
-    try {
-      await AsyncStorage.setItem(`@contact_note_${contact.id}`, note.trim());
-      setIsEditingNote(false);
-      ActionService.triggerHaptic('success');
-    } catch (e) {
-      Alert.alert('Error', 'Failed to save note.');
-    }
+    StorageService.setContactNote(contact.id, note.trim());
+    setIsEditingNote(false);
+    ActionService.triggerHaptic('success');
   };
 
   const handleToggleFav = async () => {

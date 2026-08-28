@@ -1,5 +1,5 @@
 import * as Contacts from 'expo-contacts/legacy';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StorageService } from './StorageService';
 
 export interface PhoneContact {
   id: string;
@@ -30,8 +30,6 @@ const T9_MAP: { [key: string]: string } = {
   t: '8', u: '8', v: '8',
   w: '9', x: '9', y: '9', z: '9',
 };
-
-const FAVORITES_STORAGE_KEY = '@phoneapp_favorites_ids';
 
 // Devanagari to Latin Transliteration Table
 const DEVANAGARI_TO_LATIN: { [key: string]: string } = {
@@ -332,29 +330,13 @@ export const ContactsService = {
   },
 
   async getFavoriteIds(): Promise<string[]> {
-    try {
-      const raw = await AsyncStorage.getItem(FAVORITES_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
+    return StorageService.getFavorites();
   },
 
   async toggleFavorite(contactId: string): Promise<boolean> {
     try {
-      const current = await this.getFavoriteIds();
-      const set = new Set(current);
-      let isFav = false;
-
-      if (set.has(contactId)) {
-        set.delete(contactId);
-        isFav = false;
-      } else {
-        set.add(contactId);
-        isFav = true;
-      }
-
-      await AsyncStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(set)));
+      const updatedFavorites = StorageService.toggleFavorite(contactId);
+      const isFav = updatedFavorites.includes(contactId);
 
       // Update cached contacts
       cachedContacts = cachedContacts.map((c) =>

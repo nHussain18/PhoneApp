@@ -1,9 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState } from 'react';
+import { StorageService, SupportedLanguage } from './StorageService';
 
-export type SupportedLanguage = 'en' | 'hi';
-
-const LANGUAGE_STORAGE_KEY = '@phoneapp_language_pref';
+export type { SupportedLanguage };
 
 export const translations = {
   en: {
@@ -175,30 +173,13 @@ const LanguageContext = createContext<LanguageContextProps>({
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<SupportedLanguage>('en');
+  const [language, setLanguageState] = useState<SupportedLanguage>(() =>
+    StorageService.getLanguage('en')
+  );
 
-  useEffect(() => {
-    loadSavedLanguage();
-  }, []);
-
-  const loadSavedLanguage = async () => {
-    try {
-      const saved = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-      if (saved === 'hi' || saved === 'en') {
-        setLanguageState(saved);
-      }
-    } catch (e) {
-      console.warn('Error loading language pref:', e);
-    }
-  };
-
-  const setLanguage = async (lang: SupportedLanguage) => {
+  const setLanguage = (lang: SupportedLanguage) => {
     setLanguageState(lang);
-    try {
-      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    } catch (e) {
-      console.warn('Error saving language pref:', e);
-    }
+    StorageService.setLanguage(lang);
   };
 
   const toggleLanguage = () => {
