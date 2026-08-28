@@ -76,6 +76,10 @@ export const translations = {
     saveContact: 'Save Contact',
     addContact: 'Add Contact',
     fillRequired: 'Please enter a name and phone number.',
+    voiceSearch: 'Voice Search',
+    listening: 'Listening...',
+    allLetters: 'All',
+    speakContactName: 'Speak a contact name...',
   },
   hi: {
     appTitle: 'फ़ोन',
@@ -147,6 +151,10 @@ export const translations = {
     saveContact: 'संपर्क सेव करें',
     addContact: 'संपर्क जोड़ें',
     fillRequired: 'कृपया नाम और फ़ोन नंबर दर्ज करें।',
+    voiceSearch: 'बोलकर खोजें',
+    listening: 'सुन रहे हैं...',
+    allLetters: 'सभी',
+    speakContactName: 'संपर्क का नाम बोलिए...',
   },
 };
 

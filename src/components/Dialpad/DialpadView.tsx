@@ -20,18 +20,18 @@ interface DialpadViewProps {
 }
 
 const KEYS = [
-  { digit: '1', letters: '' },
-  { digit: '2', letters: 'ABC' },
-  { digit: '3', letters: 'DEF' },
-  { digit: '4', letters: 'GHI' },
-  { digit: '5', letters: 'JKL' },
-  { digit: '6', letters: 'MNO' },
-  { digit: '7', letters: 'PQRS' },
-  { digit: '8', letters: 'TUV' },
-  { digit: '9', letters: 'WXYZ' },
-  { digit: '*', letters: '' },
-  { digit: '0', letters: '+' },
-  { digit: '#', letters: '' },
+  { digit: '1', letters: '', hindi: '' },
+  { digit: '2', letters: 'ABC', hindi: 'अ क ग' },
+  { digit: '3', letters: 'DEF', hindi: 'च छ ज' },
+  { digit: '4', letters: 'GHI', hindi: 'ट ठ ड' },
+  { digit: '5', letters: 'JKL', hindi: 'त द न' },
+  { digit: '6', letters: 'MNO', hindi: 'प ब म' },
+  { digit: '7', letters: 'PQRS', hindi: 'य र ल व' },
+  { digit: '8', letters: 'TUV', hindi: 'श स ह' },
+  { digit: '9', letters: 'WXYZ', hindi: 'क्ष त्र ज्ञ' },
+  { digit: '*', letters: '', hindi: '' },
+  { digit: '0', letters: '+', hindi: '+' },
+  { digit: '#', letters: '', hindi: '' },
 ];
 
 export const DialpadView: React.FC<DialpadViewProps> = ({
@@ -40,7 +40,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
   onContactSelect,
   onContactCreated,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [inputNumber, setInputNumber] = useState<string>('');
   const [t9Results, setT9Results] = useState<T9SearchResult[]>([]);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState<boolean>(false);
@@ -199,7 +199,11 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
             activeOpacity={0.65}
           >
             <Text style={styles.digitText}>{k.digit}</Text>
-            {k.letters ? <Text style={styles.lettersText}>{k.letters}</Text> : null}
+            {k.letters ? (
+              <Text style={styles.lettersText}>
+                {language === 'hi' && k.hindi ? `${k.letters} • ${k.hindi}` : k.letters}
+              </Text>
+            ) : null}
           </TouchableOpacity>
         ))}
       </View>

@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   TextInput,
@@ -10,11 +11,12 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { PhoneContact } from '../../services/ContactsService';
+import { PhoneContact, getContactRootLetter } from '../../services/ContactsService';
 import { FavoritesGrid } from '../Favorites/FavoritesGrid';
 import { ContactDetailsModal } from './ContactDetailsModal';
 import { CreateContactModal } from './CreateContactModal';
 import { ActionService } from '../../services/ActionService';
+import { VoiceSearchService } from '../../services/VoiceSearchService';
 import { useLanguage } from '../../services/LanguageContext';
 
 interface ContactsListProps {
@@ -24,32 +26,108 @@ interface ContactsListProps {
   onFavoriteToggled?: () => void;
 }
 
+const HINDI_ALPHABETS = [
+  'अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ए', 'ऐ', 'ओ', 'औ',
+  'क', 'ख', 'ग', 'घ',
+  'च', 'छ', 'ज', 'झ',
+  'ट', 'ठ', 'ड', 'ढ',
+  'त', 'थ', 'द', 'ध', 'न',
+  'प', 'फ', 'ब', 'भ', 'म',
+  'य', 'र', 'ल', 'व',
+  'श', 'ष', 'स', 'ह',
+  'क्ष', 'त्र', 'ज्ञ',
+];
+
+const ENGLISH_ALPHABETS = [
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+  'U', 'V', 'W', 'X', 'Y', 'Z',
+];
+
 export const ContactsList: React.FC<ContactsListProps> = ({
   contacts,
   isLoading,
   onRefresh,
   onFavoriteToggled,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [selectedContact, setSelectedContact] = useState<PhoneContact | null>(null);
   const [isCreateContactVisible, setIsCreateContactVisible] = useState<boolean>(false);
+  const [isListening, setIsListening] = useState<boolean>(false);
+
+  // Dynamically compute only letters that actually exist in contacts
+  const availableLetters = useMemo(() => {
+    const letterSet = new Set<string>();
+    for (const c of contacts) {
+      const root = getContactRootLetter(c.name);
+      if (root && root !== '#') {
+        letterSet.add(root);
+      }
+    }
+
+    const keys = Array.from(letterSet);
+    keys.sort((a, b) => {
+      const idxA = HINDI_ALPHABETS.indexOf(a);
+      const idxB = HINDI_ALPHABETS.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    return keys;
+  }, [contacts]);
 
   const favorites = useMemo(() => {
     return contacts.filter((c) => c.isFavorite);
   }, [contacts]);
 
   const filteredContacts = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return contacts;
+    let list = contacts;
+
+    // Filter by Alphabet Quick-Jump letter
+    if (selectedLetter) {
+      list = list.filter((c) => {
+        const root = getContactRootLetter(c.name);
+        return root === selectedLetter;
+      });
     }
-    const q = searchQuery.toLowerCase().trim();
-    return contacts.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.phoneNumbers.some((p) => p.number.includes(q))
-    );
-  }, [contacts, searchQuery]);
+
+    // Filter by search query (text or voice transcript)
+    if (searchQuery.trim().length > 0) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.phoneNumbers.some((p) => p.number.includes(q))
+      );
+    }
+
+    return list;
+  }, [contacts, selectedLetter, searchQuery]);
+
+  const handleVoiceSearch = async () => {
+    ActionService.triggerHaptic('impactMedium');
+    setIsListening(true);
+    const spokenText = await VoiceSearchService.startVoiceSearch(language);
+    setIsListening(false);
+
+    if (spokenText) {
+      ActionService.triggerHaptic('success');
+      setSelectedLetter(null);
+      setSearchQuery(spokenText);
+    }
+  };
+
+  const handleLetterSelect = (letter: string | null) => {
+    ActionService.triggerHaptic('selection');
+    setSelectedLetter(letter);
+    if (letter) {
+      setSearchQuery('');
+    }
+  };
 
   const handleCall = (phoneNumber: string, e?: any) => {
     if (e) e.stopPropagation();
@@ -120,10 +198,13 @@ export const ContactsList: React.FC<ContactsListProps> = ({
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
             style={styles.searchInput}
-            placeholder={t('searchContacts')}
+            placeholder={isListening ? t('listening') : t('searchContacts')}
             placeholderTextColor="#94A3B8"
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={(text) => {
+              setSearchQuery(text);
+              if (text && selectedLetter) setSelectedLetter(null);
+            }}
             clearButtonMode="while-editing"
           />
           {searchQuery.length > 0 && (
@@ -131,6 +212,15 @@ export const ContactsList: React.FC<ContactsListProps> = ({
               <Text style={styles.clearSearchText}>✕</Text>
             </TouchableOpacity>
           )}
+
+          {/* Voice Search Button */}
+          <TouchableOpacity
+            style={[styles.micButton, isListening && styles.micButtonActive]}
+            onPress={handleVoiceSearch}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.micIcon}>🎙️</Text>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity
@@ -145,8 +235,45 @@ export const ContactsList: React.FC<ContactsListProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Alphabet / Varnamala Quick-Jump Bar (Only Available Letters) */}
+      {availableLetters.length > 0 && (
+        <View style={styles.jumpBarContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.jumpScrollContent}
+          >
+            <TouchableOpacity
+              style={[styles.jumpChip, !selectedLetter && styles.jumpChipActive]}
+              onPress={() => handleLetterSelect(null)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.jumpChipText, !selectedLetter && styles.jumpChipTextActive]}>
+                {t('allLetters')}
+              </Text>
+            </TouchableOpacity>
+
+            {availableLetters.map((letter) => {
+              const isSelected = selectedLetter === letter;
+              return (
+                <TouchableOpacity
+                  key={letter}
+                  style={[styles.jumpChip, isSelected && styles.jumpChipActive]}
+                  onPress={() => handleLetterSelect(isSelected ? null : letter)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.jumpChipText, isSelected && styles.jumpChipTextActive]}>
+                    {letter}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Speed Dial / Favorites Row */}
-      {!searchQuery && (
+      {!searchQuery && !selectedLetter && (
         <FavoritesGrid
           favorites={favorites}
           onSelectContact={(c) => setSelectedContact(c)}
@@ -254,6 +381,49 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  micButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    marginLeft: 4,
+  },
+  micButtonActive: {
+    backgroundColor: '#FEE2E2',
+  },
+  micIcon: {
+    fontSize: 15,
+  },
+  jumpBarContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    marginBottom: 4,
+  },
+  jumpScrollContent: {
+    paddingHorizontal: 16,
+    gap: 6,
+  },
+  jumpChip: {
+    height: 38,
+    minWidth: 38,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  jumpChipActive: {
+    backgroundColor: '#2563EB',
+  },
+  jumpChipText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  jumpChipTextActive: {
+    color: '#FFFFFF',
   },
   listContent: {
     paddingBottom: 80,

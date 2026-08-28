@@ -12,6 +12,7 @@ import {
 import { CallLogItem } from './CallLogItem';
 import { GroupedCallLog, CallType } from '../../services/CallLogService';
 import { ActionService } from '../../services/ActionService';
+import { VoiceSearchService } from '../../services/VoiceSearchService';
 import { useLanguage } from '../../services/LanguageContext';
 
 interface CallLogListProps {
@@ -31,9 +32,10 @@ export const CallLogList: React.FC<CallLogListProps> = ({
   onDeleteLog,
   onSelectContact,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isListening, setIsListening] = useState<boolean>(false);
 
   const filteredLogs = useMemo(() => {
     let list = groupedLogs;
@@ -88,6 +90,18 @@ export const CallLogList: React.FC<CallLogListProps> = ({
     }
   };
 
+  const handleVoiceSearch = async () => {
+    ActionService.triggerHaptic('impactMedium');
+    setIsListening(true);
+    const spokenText = await VoiceSearchService.startVoiceSearch(language);
+    setIsListening(false);
+
+    if (spokenText) {
+      ActionService.triggerHaptic('success');
+      setSearchQuery(spokenText);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Search Bar */}
@@ -95,7 +109,7 @@ export const CallLogList: React.FC<CallLogListProps> = ({
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder={t('searchCalls')}
+          placeholder={isListening ? t('listening') : t('searchCalls')}
           placeholderTextColor="#94A3B8"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -106,6 +120,14 @@ export const CallLogList: React.FC<CallLogListProps> = ({
             <Text style={styles.clearSearchText}>✕</Text>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity
+          style={[styles.micButton, isListening && styles.micButtonActive]}
+          onPress={handleVoiceSearch}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.micIcon}>🎙️</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Filter Tabs */}
@@ -206,6 +228,18 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  micButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    marginLeft: 4,
+  },
+  micButtonActive: {
+    backgroundColor: '#FEE2E2',
+  },
+  micIcon: {
+    fontSize: 15,
   },
   filterRow: {
     flexDirection: 'row',
