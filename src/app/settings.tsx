@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   PermissionsAndroid,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,6 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppIcon } from '../components/Common/AppIcon';
 import { ActionService } from '../services/ActionService';
 import { CallLogService } from '../services/CallLogService';
 import { ContactsService } from '../services/ContactsService';
@@ -19,12 +22,48 @@ import { SupportedLanguage, useLanguage } from '../services/LanguageContext';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t, language, setLanguage } = useLanguage();
   const [hasPermissions, setHasPermissions] = useState<boolean>(true);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState<boolean>(false);
 
   useEffect(() => {
     checkPermissionsStatus();
   }, []);
+
+  const handleCheckForUpdates = async () => {
+    ActionService.triggerHaptic('impactLight');
+    if (__DEV__) {
+      Alert.alert('Development Mode', 'OTA updates are not active in development mode.');
+      return;
+    }
+
+    try {
+      setIsCheckingUpdate(true);
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        await Updates.fetchUpdateAsync();
+        setIsCheckingUpdate(false);
+        ActionService.triggerHaptic('success');
+        Alert.alert(
+          t('updatesTitle'),
+          t('updateDownloaded'),
+          [
+            {
+              text: t('restartNow'),
+              onPress: () => Updates.reloadAsync(),
+            },
+          ]
+        );
+      } else {
+        setIsCheckingUpdate(false);
+        Alert.alert(t('updatesTitle'), t('noUpdateAvailable'));
+      }
+    } catch (e) {
+      setIsCheckingUpdate(false);
+      Alert.alert(t('updatesTitle'), t('updateError'));
+    }
+  };
 
   const checkPermissionsStatus = async () => {
     if (Platform.OS !== 'android') return;
@@ -100,13 +139,13 @@ export default function SettingsScreen() {
           onPress={handleBack}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.backArrow}>←</Text>
+          <AppIcon name="arrow-back" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('settingsTitle')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(40, insets.bottom + 24) }]}>
         {/* Language Selection Card */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{t('selectLanguage')}</Text>
@@ -170,7 +209,7 @@ export default function SettingsScreen() {
             onPress={() => ContactsService.presentSystemContactForm()}
             activeOpacity={0.7}
           >
-            <Text style={styles.createContactIcon}>👤➕</Text>
+            <AppIcon name="person-add-outline" color="#2563EB" />
             <View>
               <Text style={styles.createContactTitle}>{t('createNewContact')}</Text>
               <Text style={styles.createContactSub}>Save new name & number to phone</Text>
@@ -239,8 +278,34 @@ export default function SettingsScreen() {
             onPress={handleClearAllLogs}
             activeOpacity={0.7}
           >
-            <Text style={styles.dangerButtonIcon}>🗑️</Text>
+            <AppIcon name="trash-outline" size={20} color="#DC2626" />
             <Text style={styles.dangerButtonText}>{t('clearAllLogs')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* App Updates Card */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>{t('updatesTitle')}</Text>
+
+          <TouchableOpacity
+            style={styles.updateButton}
+            onPress={handleCheckForUpdates}
+            disabled={isCheckingUpdate}
+            activeOpacity={0.7}
+          >
+            {isCheckingUpdate ? (
+              <ActivityIndicator size="small" color="#2563EB" style={{ marginRight: 8 }} />
+            ) : (
+              <AppIcon name="refresh-outline" size={20} color="#2563EB" />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.updateButtonTitle}>
+                {isCheckingUpdate ? t('checkingUpdates') : t('checkUpdates')}
+              </Text>
+              <Text style={styles.updateButtonSub}>
+                {Updates.channel ? `Channel: ${Updates.channel}` : 'Over-the-air auto sync'}
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -302,7 +367,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backArrow: {
-    fontSize: 22,
+    fontSize: 18,
+    backgroundColor:'red',
     color: '#0F172A',
     fontWeight: 'bold',
   },
@@ -448,6 +514,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#DC2626',
+  },
+  updateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 12,
+  },
+  updateButtonIcon: {
+    fontSize: 20,
+  },
+  updateButtonTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  updateButtonSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
   },
   aboutCard: {
     alignItems: 'center',

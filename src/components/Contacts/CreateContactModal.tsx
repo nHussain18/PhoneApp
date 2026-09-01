@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { ContactsService } from '../../services/ContactsService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionService } from '../../services/ActionService';
+import { ContactsService } from '../../services/ContactsService';
 import { useLanguage } from '../../services/LanguageContext';
+import { AppIcon } from '../Common/AppIcon';
 
 interface CreateContactModalProps {
   visible: boolean;
@@ -31,6 +33,7 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
   onClose,
   onContactCreated,
 }) => {
+  const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const [firstName, setFirstName] = useState<string>(initialName);
   const [lastName, setLastName] = useState<string>('');
@@ -97,16 +100,16 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
           {/* Header */}
           <View style={styles.headerBar}>
             <View style={styles.titleRow}>
-              <Text style={styles.headerIcon}>👤</Text>
+              <AppIcon name="person-add-outline" color="#2563EB" style={{ marginRight: 8 }} />
               <Text style={styles.headerTitle}>{t('createNewContact')}</Text>
             </View>
 
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeText}>✕</Text>
+              <AppIcon name="close" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(24, insets.bottom + 20) }]}>
             {/* First Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>{t('firstName')} *</Text>
@@ -155,7 +158,10 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
               {isSaving ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.saveButtonText}>✓ {t('saveContact')}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <AppIcon name="checkmark" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.saveButtonText}>{t('saveContact')}</Text>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -165,9 +171,10 @@ export const CreateContactModal: React.FC<CreateContactModalProps> = ({
               onPress={handleOpenSystemForm}
               activeOpacity={0.7}
             >
-              <Text style={styles.systemFormText}>
-                ⚙️ Open Full Google / Phone Form
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <AppIcon name="settings-outline" size={18} color="#2563EB" style={{ marginRight: 6 }} />
+                <Text style={styles.systemFormText}>Open Full Google / Phone Form</Text>
+              </View>
             </TouchableOpacity>
           </ScrollView>
         </View>

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CallLogItem } from './CallLogItem';
 import { GroupedCallLog, CallType } from '../../services/CallLogService';
+import { AppIcon } from '../Common/AppIcon';
 import { ActionService } from '../../services/ActionService';
 import { VoiceSearchService } from '../../services/VoiceSearchService';
 import { useLanguage } from '../../services/LanguageContext';
@@ -106,7 +107,7 @@ export const CallLogList: React.FC<CallLogListProps> = ({
     <View style={styles.container}>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <AppIcon name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
         <TextInput
           style={styles.searchInput}
           placeholder={isListening ? t('listening') : t('searchCalls')}
@@ -117,7 +118,7 @@ export const CallLogList: React.FC<CallLogListProps> = ({
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearch}>
-            <Text style={styles.clearSearchText}>✕</Text>
+            <AppIcon name="close" size={16} color="#94A3B8" />
           </TouchableOpacity>
         )}
 
@@ -126,7 +127,7 @@ export const CallLogList: React.FC<CallLogListProps> = ({
           onPress={handleVoiceSearch}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Text style={styles.micIcon}>🎙️</Text>
+          <AppIcon name={isListening ? 'mic' : 'mic-outline'} size={18} color={isListening ? '#DC2626' : '#64748B'} />
         </TouchableOpacity>
       </View>
 
@@ -178,7 +179,7 @@ export const CallLogList: React.FC<CallLogListProps> = ({
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📭</Text>
+              <AppIcon name="call-outline" size={48} color="#94A3B8" style={{ alignSelf: 'center', marginBottom: 8 }} />
               <Text style={styles.emptyTitle}>{t('noCallsFound')}</Text>
               <Text style={styles.emptySubtitle}>
                 {searchQuery

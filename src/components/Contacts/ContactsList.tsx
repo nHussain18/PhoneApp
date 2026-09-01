@@ -1,23 +1,24 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
+  ActivityIndicator,
   FlatList,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
   Image,
   RefreshControl,
-  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { ActionService } from '../../services/ActionService';
 import { PhoneContact, getContactRootLetter } from '../../services/ContactsService';
+import { useLanguage } from '../../services/LanguageContext';
+import { VoiceSearchService } from '../../services/VoiceSearchService';
+import { AppIcon } from '../Common/AppIcon';
 import { FavoritesGrid } from '../Favorites/FavoritesGrid';
 import { ContactDetailsModal } from './ContactDetailsModal';
 import { CreateContactModal } from './CreateContactModal';
-import { ActionService } from '../../services/ActionService';
-import { VoiceSearchService } from '../../services/VoiceSearchService';
-import { useLanguage } from '../../services/LanguageContext';
 
 interface ContactsListProps {
   contacts: PhoneContact[];
@@ -162,7 +163,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
             <Text style={styles.contactName} numberOfLines={1}>
               {item.name}
             </Text>
-            {item.isFavorite && <Text style={styles.starIcon}>⭐</Text>}
+            {item.isFavorite && <AppIcon name="star" size={14} color="#EAB308" />}
           </View>
           <Text style={styles.contactPhone} numberOfLines={1}>
             {primaryPhone}
@@ -170,20 +171,20 @@ export const ContactsList: React.FC<ContactsListProps> = ({
         </View>
 
         <View style={styles.actionRow}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.whatsAppButton}
             onPress={(e) => handleWhatsApp(primaryPhone, e)}
             hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
           >
-            <Text style={styles.btnIcon}>💬</Text>
-          </TouchableOpacity>
+            <AppIcon name="logo-whatsapp" size={18} color="#16A34A" />
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={styles.callButton}
             onPress={(e) => handleCall(primaryPhone, e)}
             hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
           >
-            <Text style={styles.btnIcon}>📞</Text>
+            <AppIcon name="call" size={18} color="#2563EB" />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -195,7 +196,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
       {/* Search Header & New Contact Button */}
       <View style={styles.topActionRow}>
         <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <AppIcon name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder={isListening ? t('listening') : t('searchContacts')}
@@ -209,7 +210,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearSearch}>
-              <Text style={styles.clearSearchText}>✕</Text>
+              <AppIcon name="close" size={16} color="#94A3B8" />
             </TouchableOpacity>
           )}
 
@@ -219,7 +220,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
             onPress={handleVoiceSearch}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.micIcon}>🎙️</Text>
+            <AppIcon name={isListening ? 'mic' : 'mic-outline'} size={18} color={isListening ? '#DC2626' : '#64748B'} />
           </TouchableOpacity>
         </View>
 
@@ -231,7 +232,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
           }}
           activeOpacity={0.7}
         >
-          <Text style={styles.newContactBtnText}>{t('createContact')}</Text>
+          {/* <Text style={styles.newContactBtnText}>{t('createContact')}</Text> */}
+          <Text style={styles.newContactBtnText}>{'+'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -297,7 +299,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>👤</Text>
+              <AppIcon name="person-outline" size={48} color="#94A3B8" style={{ alignSelf: 'center', marginBottom: 8 }} />
               <Text style={styles.emptyTitle}>{t('noContactsFound')}</Text>
               <Text style={styles.emptySubtitle}>
                 {searchQuery

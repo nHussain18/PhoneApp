@@ -1,15 +1,16 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
   Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { PhoneContact } from '../../services/ContactsService';
 import { ActionService } from '../../services/ActionService';
+import { PhoneContact } from '../../services/ContactsService';
 import { useLanguage } from '../../services/LanguageContext';
+import { AppIcon } from '../Common/AppIcon';
 
 interface FavoritesGridProps {
   favorites: PhoneContact[];
@@ -61,7 +62,7 @@ export const FavoritesGrid: React.FC<FavoritesGridProps> = ({
                 onPress={() => ActionService.placeCall(primaryPhone)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.callIcon}>📞</Text>
+                <AppIcon name="call" size={14} color="#FFFFFF" />
               </TouchableOpacity>
             </TouchableOpacity>
           );

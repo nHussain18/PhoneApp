@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   AppState,
@@ -10,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CallLogList } from '../components/CallLog/CallLogList';
-import { useRouter } from 'expo-router';
+import { AppIcon } from '../components/Common/AppIcon';
 import { ContactDetailsModal } from '../components/Contacts/ContactDetailsModal';
 import { ContactsList } from '../components/Contacts/ContactsList';
 import { DialpadView } from '../components/Dialpad/DialpadView';
@@ -25,6 +26,7 @@ type ActiveTab = 'RECENTS' | 'CONTACTS';
 
 export default function PhoneHomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<ActiveTab>('RECENTS');
   const [isDialpadVisible, setIsDialpadVisible] = useState<boolean>(false);
@@ -160,7 +162,7 @@ export default function PhoneHomeScreen() {
             }}
             activeOpacity={0.7}
           >
-            <Text style={styles.settingsIcon}>⚙️</Text>
+            <AppIcon name="settings" color="#475569" />
           </TouchableOpacity>
         </View>
 
@@ -220,7 +222,7 @@ export default function PhoneHomeScreen() {
           <CallLogList
             groupedLogs={callLogs}
             isLoading={isLoadingLogs}
-            onRefresh={loadCallLogs}
+            onRefresh={() => loadCallLogs()}
             onDeleteLog={handleDeleteCallLog}
             onSelectContact={handleSelectContactFromCallLog}
           />
@@ -249,7 +251,7 @@ export default function PhoneHomeScreen() {
                 onPress={() => setIsDialpadVisible(false)}
                 style={styles.closeDialpadBtn}
               >
-                <Text style={styles.closeDialpadText}>✕</Text>
+                <AppIcon name="close" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
 
@@ -269,14 +271,17 @@ export default function PhoneHomeScreen() {
       {/* Floating Keypad Toggle Button (FAB) */}
       {!isDialpadVisible && (
         <TouchableOpacity
-          style={styles.fabButton}
+          style={[
+            styles.fabButton,
+            { bottom: Math.max(20, insets.bottom + 16) },
+          ]}
           onPress={() => {
             ActionService.triggerHaptic('impactMedium');
             setIsDialpadVisible(true);
           }}
           activeOpacity={0.85}
         >
-          <Text style={styles.fabIcon}>⌨️</Text>
+          <AppIcon name="keypad" size={26} color="#FFFFFF" />
         </TouchableOpacity>
       )}
 

@@ -1,12 +1,19 @@
 {
   "expo": {
     "name": "PhoneApp",
-    "slug": "PhoneApp",
+    "slug": "phone-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "phoneapp",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion":  "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/e78b81fb-25f6-4bb4-9331-2c573bf1f361",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.ils-nazir.PhoneApp"
@@ -40,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e78b81fb-25f6-4bb4-9331-2c573bf1f361"
+      }
+    },
+    "owner": "nhussain18"
   }
 }

@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
   Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
-  Alert,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { PhoneContact, ContactsService } from '../../services/ContactsService';
-import { StorageService } from '../../services/StorageService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionService } from '../../services/ActionService';
+import { ContactsService, PhoneContact } from '../../services/ContactsService';
 import { useLanguage } from '../../services/LanguageContext';
+import { StorageService } from '../../services/StorageService';
+import { AppIcon } from '../Common/AppIcon';
 
 interface ContactDetailsModalProps {
   contact: PhoneContact | null;
@@ -28,6 +29,7 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
   onClose,
   onFavoriteToggled,
 }) => {
+  const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [note, setNote] = useState<string>('');
@@ -73,15 +75,15 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
           {/* Header Bar */}
           <View style={styles.headerBar}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeText}>✕</Text>
+              <AppIcon name="close" size={20} color="#64748B" />
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleToggleFav} style={styles.favButton}>
-              <Text style={styles.favIcon}>{isFavorite ? '⭐' : '☆'}</Text>
+              <AppIcon name={isFavorite ? 'star' : 'star-outline'} color={isFavorite ? '#EAB308' : '#CBD5E1'} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.scrollContent}>
+          <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(30, insets.bottom + 20) }]}>
             {/* Avatar & Name */}
             <View style={styles.profileHeader}>
               {contact.imageUri ? (
@@ -102,7 +104,7 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                 onPress={() => ActionService.placeCall(primaryPhone)}
               >
                 <View style={[styles.actionCircle, { backgroundColor: '#DCFCE7' }]}>
-                  <Text style={styles.actionIcon}>📞</Text>
+                  <AppIcon name="call" color="#15803D" />
                 </View>
                 <Text style={styles.actionLabel}>{t('call')}</Text>
               </TouchableOpacity>
@@ -112,7 +114,7 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                 onPress={() => ActionService.openWhatsApp(primaryPhone)}
               >
                 <View style={[styles.actionCircle, { backgroundColor: '#D1FAE5' }]}>
-                  <Text style={styles.actionIcon}>💬</Text>
+                  <AppIcon name="logo-whatsapp" color="#16A34A" />
                 </View>
                 <Text style={styles.actionLabel}>{t('whatsApp')}</Text>
               </TouchableOpacity>
@@ -122,7 +124,7 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                 onPress={() => ActionService.sendSms(primaryPhone)}
               >
                 <View style={[styles.actionCircle, { backgroundColor: '#E0F2FE' }]}>
-                  <Text style={styles.actionIcon}>✉️</Text>
+                  <AppIcon name="mail-outline" color="#0284C7" />
                 </View>
                 <Text style={styles.actionLabel}>{t('sms')}</Text>
               </TouchableOpacity>
@@ -143,13 +145,13 @@ export const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                       style={styles.miniButton}
                       onPress={() => ActionService.openWhatsApp(p.number)}
                     >
-                      <Text style={styles.miniIcon}>💬</Text>
+                      <AppIcon name="logo-whatsapp" size={16} color="#16A34A" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.miniButton, { backgroundColor: '#DCFCE7' }]}
                       onPress={() => ActionService.placeCall(p.number)}
                     >
-                      <Text style={styles.miniIcon}>📞</Text>
+                      <AppIcon name="call" size={16} color="#15803D" />
                     </TouchableOpacity>
                   </View>
                 </View>

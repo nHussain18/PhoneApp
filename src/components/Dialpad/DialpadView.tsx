@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionService } from '../../services/ActionService';
 import { ContactsService, PhoneContact, T9SearchResult } from '../../services/ContactsService';
 import { useLanguage } from '../../services/LanguageContext';
 import { CreateContactModal } from '../Contacts/CreateContactModal';
+import { AppIcon } from '../Common/AppIcon';
 
 interface DialpadViewProps {
   contacts: PhoneContact[];
@@ -40,6 +42,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
   onContactSelect,
   onContactCreated,
 }) => {
+  const insets = useSafeAreaInsets();
   const { t, language } = useLanguage();
   const [inputNumber, setInputNumber] = useState<string>('');
   const [t9Results, setT9Results] = useState<T9SearchResult[]>([]);
@@ -91,7 +94,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(20, insets.bottom + 16) }]}>
       {/* T9 Search Results Overlay / Preview */}
       {t9Results.length > 0 && (
         <View style={styles.t9Container}>
@@ -134,7 +137,8 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
                       if (onCallPlaced) onCallPlaced(res.matchedNumber || primaryPhone);
                     }}
                   >
-                    <Text style={styles.t9QuickCallText}>📞 {t('call')}</Text>
+                    <AppIcon name="call" size={14} color="#15803D" style={{ marginRight: 4 }} />
+                    <Text style={styles.t9QuickCallText}>{t('call')}</Text>
                   </TouchableOpacity>
                 </TouchableOpacity>
               );
@@ -162,7 +166,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
             onPress={handleBackspace}
             onLongPress={handleClear}
           >
-            <Text style={styles.backspaceText}>⌫</Text>
+            <AppIcon name="backspace-outline" size={24} color="#475569" />
           </TouchableOpacity>
         )}
       </View>
@@ -177,13 +181,16 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
               setIsCreateModalVisible(true);
             }}
           >
-            <Text style={styles.actionChipText}>👤➕ {t('addContact')}</Text>
+            <AppIcon name="person-add-outline" size={16} color="#2563EB" style={{ marginRight: 4 }} />
+            <Text style={styles.actionChipText}>{t('addContact')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionChip} onPress={handleWhatsApp}>
-            <Text style={styles.actionChipText}>💬 {t('whatsApp')}</Text>
+            <AppIcon name="logo-whatsapp" size={16} color="#16A34A" style={{ marginRight: 4 }} />
+            <Text style={styles.actionChipText}>{t('whatsApp')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionChip} onPress={handleSms}>
-            <Text style={styles.actionChipText}>✉️ {t('sms')}</Text>
+            <AppIcon name="mail-outline" size={16} color="#0284C7" style={{ marginRight: 4 }} />
+            <Text style={styles.actionChipText}>{t('sms')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -200,8 +207,13 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
           >
             <Text style={styles.digitText}>{k.digit}</Text>
             {k.letters ? (
-              <Text style={styles.lettersText}>
-                {language === 'hi' && k.hindi ? `${k.letters} • ${k.hindi}` : k.letters}
+              <Text
+                style={styles.lettersText}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+              >
+                {language === 'hi' && k.hindi ? k.hindi : k.letters}
               </Text>
             ) : null}
           </TouchableOpacity>
@@ -216,7 +228,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
           disabled={!inputNumber}
           activeOpacity={0.8}
         >
-          <Text style={styles.callButtonIcon}>📞</Text>
+          <AppIcon name="call" size={30} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -367,24 +379,28 @@ const styles = StyleSheet.create({
   },
   keyButton: {
     width: (Dimensions.get('window').width - 48 - 28) / 3,
-    height: 62,
-    borderRadius: 31,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    paddingHorizontal: 4,
   },
   digitText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: '#0F172A',
+    lineHeight: 26,
   },
   lettersText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     color: '#64748B',
-    letterSpacing: 1.5,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    paddingHorizontal: 2,
   },
   callRow: {
     alignItems: 'center',

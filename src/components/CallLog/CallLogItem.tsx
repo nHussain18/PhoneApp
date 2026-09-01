@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
-  View,
+  Alert,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
+  View,
 } from 'react-native';
-import { CallLogService, GroupedCallLog, CallType } from '../../services/CallLogService';
-import { ActionService } from '../../services/ActionService';
+import { CallLogService, CallType, GroupedCallLog } from '../../services/CallLogService';
 import { useLanguage } from '../../services/LanguageContext';
+import { AppIcon } from '../Common/AppIcon';
 
 interface CallLogItemProps {
   group: GroupedCallLog;
@@ -31,17 +31,17 @@ export const CallLogItem: React.FC<CallLogItemProps> = ({
   const getCallTypeInfo = (type: CallType) => {
     switch (type) {
       case 'INCOMING':
-        return { icon: '↙️', label: t('incomingCall'), color: '#16A34A' };
+        return { iconName: 'arrow-down-outline' as const, label: t('incomingCall'), color: '#16A34A' };
       case 'OUTGOING':
-        return { icon: '↗️', label: t('outgoingCall'), color: '#2563EB' };
+        return { iconName: 'arrow-up-outline' as const, label: t('outgoingCall'), color: '#2563EB' };
       case 'MISSED':
-        return { icon: '🚫', label: t('missedCall'), color: '#DC2626' };
+        return { iconName: 'close-circle-outline' as const, label: t('missedCall'), color: '#DC2626' };
       case 'REJECTED':
-        return { icon: '⛔', label: t('declinedCall'), color: '#EA580C' };
+        return { iconName: 'close-outline' as const, label: t('declinedCall'), color: '#EA580C' };
       case 'BLOCKED':
-        return { icon: '🛑', label: t('blockedCall'), color: '#4B5563' };
+        return { iconName: 'ban-outline' as const, label: t('blockedCall'), color: '#4B5563' };
       default:
-        return { icon: '📞', label: t('call'), color: '#64748B' };
+        return { iconName: 'call-outline' as const, label: t('call'), color: '#64748B' };
     }
   };
 
@@ -97,7 +97,7 @@ export const CallLogItem: React.FC<CallLogItemProps> = ({
           </View>
 
           <View style={styles.subRow}>
-            <Text style={styles.typeIcon}>{typeInfo.icon}</Text>
+            <AppIcon name={typeInfo.iconName} size={14} color={typeInfo.color} style={{ marginRight: 4 }} />
             <Text style={styles.timestampText}>
               {CallLogService.formatTimestamp(group.latestTimestamp, language)}
             </Text>
@@ -111,20 +111,20 @@ export const CallLogItem: React.FC<CallLogItemProps> = ({
 
         {/* Quick Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.whatsAppButton}
             onPress={() => onWhatsApp(group.phoneNumber)}
             hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
           >
-            <Text style={styles.actionIcon}>💬</Text>
-          </TouchableOpacity>
+            <AppIcon name="logo-whatsapp" size={18} color="#16A34A" />
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={styles.callButton}
             onPress={() => onCall(group.phoneNumber)}
             hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
           >
-            <Text style={styles.actionIcon}>📞</Text>
+            <AppIcon name="call" size={18} color="#2563EB" />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -138,7 +138,7 @@ export const CallLogItem: React.FC<CallLogItemProps> = ({
             return (
               <View key={entry.id} style={styles.detailRow}>
                 <View style={styles.detailLeft}>
-                  <Text style={styles.detailIcon}>{subType.icon}</Text>
+                  <AppIcon name={subType.iconName} size={16} color={subType.color} style={{ marginRight: 8 }} />
                   <View>
                     <Text style={styles.detailType}>
                       {subType.label}{' '}
@@ -156,7 +156,7 @@ export const CallLogItem: React.FC<CallLogItemProps> = ({
                   style={styles.detailDelete}
                   onPress={(e) => handleDeleteItem(entry.id, e)}
                 >
-                  <Text style={styles.deleteText}>🗑️</Text>
+                  <AppIcon name="trash-outline" size={16} color="#DC2626" />
                 </TouchableOpacity>
               </View>
             );

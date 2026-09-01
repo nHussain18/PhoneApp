@@ -78,6 +78,13 @@ export const translations = {
     listening: 'Listening...',
     allLetters: 'All',
     speakContactName: 'Speak a contact name...',
+    updatesTitle: 'App Updates',
+    checkUpdates: 'Check for Updates',
+    checkingUpdates: 'Checking for updates...',
+    updateDownloaded: 'Update downloaded! Restart to apply changes.',
+    noUpdateAvailable: 'Your app is up to date.',
+    updateError: 'Could not check for updates.',
+    restartNow: 'Restart Now',
   },
   hi: {
     appTitle: 'फ़ोन',
@@ -153,6 +160,13 @@ export const translations = {
     listening: 'सुन रहे हैं...',
     allLetters: 'सभी',
     speakContactName: 'संपर्क का नाम बोलिए...',
+    updatesTitle: 'ऐप अपडेट (Updates)',
+    checkUpdates: 'अपडेट जांचें',
+    checkingUpdates: 'अपडेट की जांच हो रही है...',
+    updateDownloaded: 'नया अपडेट डाउनलोड हो गया! लागू करने के लिए ऐप रीस्टार्ट करें।',
+    noUpdateAvailable: 'आपका ऐप पहले से अपडेट है।',
+    updateError: 'अपडेट की जांच नहीं हो सकी।',
+    restartNow: 'रीस्टार्ट करें',
   },
 };
 
