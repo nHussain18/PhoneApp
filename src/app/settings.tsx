@@ -209,10 +209,10 @@ export default function SettingsScreen() {
             onPress={() => ContactsService.presentSystemContactForm()}
             activeOpacity={0.7}
           >
-            <AppIcon name="person-add-outline" color="#2563EB" />
-            <View>
+            <AppIcon name="person-add" size={30} color="#2563EB" />
+            <View style={{ flex:1}}>
               <Text style={styles.createContactTitle}>{t('createNewContact')}</Text>
-              <Text style={styles.createContactSub}>Save new name & number to phone</Text>
+              <Text style={styles.createContactSub}>Save new name number to phone</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     color: '#1E40AF',
   },
   createContactSub: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#3B82F6',
     marginTop: 2,
   },
