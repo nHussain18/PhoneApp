@@ -7,6 +7,7 @@ export const translations = {
   en: {
     appTitle: 'Phone',
     recents: 'Recents',
+    keypad: 'Keypad',
     contacts: 'Contacts',
     filterAll: 'All',
     filterMissed: 'Missed',
@@ -89,7 +90,8 @@ export const translations = {
   hi: {
     appTitle: 'फ़ोन',
     recents: 'कॉल हिस्ट्री',
-    contacts: 'संपर्क (Contacts)',
+    keypad: 'कीपैड',
+    contacts: 'संपर्क',
     filterAll: 'सभी',
     filterMissed: 'मिस्ड कॉल',
     filterIncoming: 'आए हुए कॉल',

@@ -11,32 +11,29 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CallLogList } from '../components/CallLog/CallLogList';
 import { AppIcon } from '../components/Common/AppIcon';
 import { ContactDetailsModal } from '../components/Contacts/ContactDetailsModal';
 import { ContactsList } from '../components/Contacts/ContactsList';
 import { DialpadView } from '../components/Dialpad/DialpadView';
+import { BottomTabBar, BottomTabType } from '../components/Navigation/BottomTabBar';
 import { ActionService } from '../services/ActionService';
 import { CallLogService, GroupedCallLog } from '../services/CallLogService';
 import { ContactsService, PhoneContact } from '../services/ContactsService';
 import { useLanguage } from '../services/LanguageContext';
 
-type ActiveTab = 'RECENTS' | 'CONTACTS';
-
 export default function PhoneHomeScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('RECENTS');
-  const [isDialpadVisible, setIsDialpadVisible] = useState<boolean>(false);
-  const [hasPermissions, setHasPermissions] = useState<boolean>(true);
+  // 3 separate tabs: Recents (default open), Keypad in center, Contacts
+  const [activeTab, setActiveTab] = useState<BottomTabType>('RECENTS');
 
+  const [hasPermissions, setHasPermissions] = useState<boolean>(true);
   const [callLogs, setCallLogs] = useState<GroupedCallLog[]>([]);
   const [contacts, setContacts] = useState<PhoneContact[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState<boolean>(false);
   const [isLoadingContacts, setIsLoadingContacts] = useState<boolean>(false);
-
   const [selectedContact, setSelectedContact] = useState<PhoneContact | null>(null);
 
   // Request Android Permissions
@@ -124,7 +121,6 @@ export default function PhoneHomeScreen() {
   };
 
   const handleSelectContactFromCallLog = (phoneNumber: string, name?: string) => {
-    // Find matching contact in loaded contacts list
     const found = contacts.find((c) =>
       c.phoneNumbers.some(
         (p) =>
@@ -146,62 +142,23 @@ export default function PhoneHomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Top Header */}
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={styles.headerTitle}>{t('appTitle')}</Text>
+        <Text style={styles.headerTitle}>{t('appTitle')}</Text>
 
-          <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={() => {
-              ActionService.triggerHaptic('selection');
-              router.push('/settings');
-            }}
-            activeOpacity={0.7}
-          >
-            <AppIcon name="settings" color="#475569" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Tab Switcher */}
-        <View style={styles.tabSwitcher}>
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'RECENTS' && styles.tabButtonActive]}
-            onPress={() => {
-              ActionService.triggerHaptic('selection');
-              setActiveTab('RECENTS');
-            }}
-          >
-            <Text
-              style={[
-                styles.tabButtonText,
-                activeTab === 'RECENTS' && styles.tabButtonTextActive,
-              ]}
-            >
-              {t('recents')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tabButton, activeTab === 'CONTACTS' && styles.tabButtonActive]}
-            onPress={() => {
-              ActionService.triggerHaptic('selection');
-              setActiveTab('CONTACTS');
-            }}
-          >
-            <Text
-              style={[
-                styles.tabButtonText,
-                activeTab === 'CONTACTS' && styles.tabButtonTextActive,
-              ]}
-            >
-              {t('contacts')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => {
+            ActionService.triggerHaptic('selection');
+            router.push('/settings');
+          }}
+          activeOpacity={0.7}
+        >
+          <AppIcon name="settings-outline" size={20} color="#475569" />
+        </TouchableOpacity>
       </View>
 
       {/* Permission Warning Banner if missing */}
@@ -216,17 +173,31 @@ export default function PhoneHomeScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Main Content View */}
+      {/* Main Content Area based on Active Tab */}
       <View style={styles.content}>
-        {activeTab === 'RECENTS' ? (
+        {activeTab === 'RECENTS' && (
           <CallLogList
             groupedLogs={callLogs}
             isLoading={isLoadingLogs}
-            onRefresh={() => loadCallLogs()}
+            onRefresh={loadCallLogs}
             onDeleteLog={handleDeleteCallLog}
             onSelectContact={handleSelectContactFromCallLog}
+            contentPaddingBottom={20}
           />
-        ) : (
+        )}
+
+        {activeTab === 'KEYPAD' && (
+          <DialpadView
+            contacts={contacts}
+            onCallPlaced={() => {}}
+            onContactSelect={(c) => {
+              setSelectedContact(c);
+            }}
+            onContactCreated={() => loadContacts(false)}
+          />
+        )}
+
+        {activeTab === 'CONTACTS' && (
           <ContactsList
             contacts={contacts}
             isLoading={isLoadingContacts}
@@ -236,54 +207,13 @@ export default function PhoneHomeScreen() {
         )}
       </View>
 
-      {/* Dialpad Slide-up / Bottom Sheet */}
-      {isDialpadVisible && (
-        <View style={styles.dialpadOverlay}>
-          <TouchableOpacity
-            style={styles.backdrop}
-            onPress={() => setIsDialpadVisible(false)}
-            activeOpacity={1}
-          />
-          <View style={styles.dialpadContainer}>
-            <View style={styles.dialpadHandleRow}>
-              <View style={styles.sheetHandle} />
-              <TouchableOpacity
-                onPress={() => setIsDialpadVisible(false)}
-                style={styles.closeDialpadBtn}
-              >
-                <AppIcon name="close" size={20} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            <DialpadView
-              contacts={contacts}
-              onCallPlaced={() => setIsDialpadVisible(false)}
-              onContactSelect={(c) => {
-                setIsDialpadVisible(false);
-                setSelectedContact(c);
-              }}
-              onContactCreated={() => loadContacts(false)}
-            />
-          </View>
-        </View>
-      )}
-
-      {/* Floating Keypad Toggle Button (FAB) */}
-      {!isDialpadVisible && (
-        <TouchableOpacity
-          style={[
-            styles.fabButton,
-            { bottom: Math.max(20, insets.bottom + 16) },
-          ]}
-          onPress={() => {
-            ActionService.triggerHaptic('impactMedium');
-            setIsDialpadVisible(true);
-          }}
-          activeOpacity={0.85}
-        >
-          <AppIcon name="keypad" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-      )}
+      {/* 3-Tab Bottom Navigation: Recents (left) | Keypad (center) | Contacts (right) */}
+      <BottomTabBar
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+        }}
+      />
 
       {/* Contact Details Sheet */}
       <ContactDetailsModal
@@ -302,23 +232,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 14 : 6,
-    paddingBottom: 10,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 14 : 6,
+    paddingBottom: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
   headerTitle: {
     fontSize: 26,
     fontWeight: '800',
     color: '#0F172A',
+    letterSpacing: -0.5,
   },
   settingsButton: {
     width: 38,
@@ -329,38 +257,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-  },
-  settingsIcon: {
-    fontSize: 18,
-  },
-  tabSwitcher: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 12,
-    padding: 3,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 9,
-    alignItems: 'center',
-  },
-  tabButtonActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
-  },
-  tabButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  tabButtonTextActive: {
-    color: '#0F172A',
-    fontWeight: '700',
   },
   permBanner: {
     backgroundColor: '#FEF3C7',
@@ -377,68 +273,5 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  fabButton: {
-    position: 'absolute',
-    bottom: 24,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 8,
-  },
-  fabIcon: {
-    fontSize: 26,
-  },
-  dialpadOverlay: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: 'flex-end',
-    zIndex: 100,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(15, 23, 42, 0.4)',
-  },
-  dialpadContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  dialpadHandleRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingHorizontal: 16,
-    position: 'relative',
-  },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#CBD5E1',
-  },
-  closeDialpadBtn: {
-    position: 'absolute',
-    right: 16,
-    top: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeDialpadText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: 'bold',
   },
 });

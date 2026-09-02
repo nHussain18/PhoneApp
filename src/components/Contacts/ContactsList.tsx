@@ -2,22 +2,22 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { ActionService } from '../../services/ActionService';
-import { PhoneContact, getContactRootLetter } from '../../services/ContactsService';
+import { ContactsService, PhoneContact, getContactRootLetter } from '../../services/ContactsService';
 import { useLanguage } from '../../services/LanguageContext';
 import { VoiceSearchService } from '../../services/VoiceSearchService';
 import { AppIcon } from '../Common/AppIcon';
 import { FavoritesGrid } from '../Favorites/FavoritesGrid';
 import { ContactDetailsModal } from './ContactDetailsModal';
+import { ContactListItem } from './ContactListItem';
 import { CreateContactModal } from './CreateContactModal';
 
 interface ContactsListProps {
@@ -141,53 +141,13 @@ export const ContactsList: React.FC<ContactsListProps> = ({
   };
 
   const renderContactItem = ({ item }: { item: PhoneContact }) => {
-    const initial = item.name ? item.name.charAt(0).toUpperCase() : '#';
-    const primaryPhone = item.phoneNumbers[0]?.number || '';
-
     return (
-      <TouchableOpacity
-        style={styles.contactItem}
-        onPress={() => setSelectedContact(item)}
-        activeOpacity={0.7}
-      >
-        {item.imageUri ? (
-          <Image source={{ uri: item.imageUri }} style={styles.avatarImage} />
-        ) : (
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
-        )}
-
-        <View style={styles.contactInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.contactName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {item.isFavorite && <AppIcon name="star" size={14} color="#EAB308" />}
-          </View>
-          <Text style={styles.contactPhone} numberOfLines={1}>
-            {primaryPhone}
-          </Text>
-        </View>
-
-        <View style={styles.actionRow}>
-          {/* <TouchableOpacity
-            style={styles.whatsAppButton}
-            onPress={(e) => handleWhatsApp(primaryPhone, e)}
-            hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
-          >
-            <AppIcon name="logo-whatsapp" size={18} color="#16A34A" />
-          </TouchableOpacity> */}
-
-          <TouchableOpacity
-            style={styles.callButton}
-            onPress={(e) => handleCall(primaryPhone, e)}
-            hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
-          >
-            <AppIcon name="call" size={18} color="#2563EB" />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+      <ContactListItem
+        contact={item}
+        onSelect={(c) => setSelectedContact(c)}
+        onCall={(phone) => handleCall(phone)}
+        onWhatsApp={(phone) => handleWhatsApp(phone)}
+      />
     );
   };
 
@@ -226,9 +186,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
 
         <TouchableOpacity
           style={styles.newContactBtn}
-          onPress={() => {
+          onPress={async() => {
             ActionService.triggerHaptic('selection');
-            setIsCreateContactVisible(true);
+            // setIsCreateContactVisible(true);
+            ContactsService.presentSystemContactForm()
           }}
           activeOpacity={0.7}
         >

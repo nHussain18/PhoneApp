@@ -1,20 +1,23 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  RefreshControl,
   ActivityIndicator,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { CallLogItem } from './CallLogItem';
-import { GroupedCallLog, CallType } from '../../services/CallLogService';
-import { AppIcon } from '../Common/AppIcon';
 import { ActionService } from '../../services/ActionService';
-import { VoiceSearchService } from '../../services/VoiceSearchService';
+import { GroupedCallLog } from '../../services/CallLogService';
 import { useLanguage } from '../../services/LanguageContext';
+import { VoiceSearchService } from '../../services/VoiceSearchService';
+import { AppIcon } from '../Common/AppIcon';
+import { CallLogItem } from './CallLogItem';
 
 interface CallLogListProps {
   groupedLogs: GroupedCallLog[];
@@ -22,6 +25,8 @@ interface CallLogListProps {
   onRefresh: () => void;
   onDeleteLog: (id: string) => void;
   onSelectContact?: (phone: string, name?: string) => void;
+  onScrollDirectionChange?: (isScrollingDown: boolean, isAtTop: boolean) => void;
+  contentPaddingBottom?: number;
 }
 
 type FilterTab = 'ALL' | 'MISSED' | 'INCOMING' | 'OUTGOING';
@@ -32,11 +37,14 @@ export const CallLogList: React.FC<CallLogListProps> = ({
   onRefresh,
   onDeleteLog,
   onSelectContact,
+  onScrollDirectionChange,
+  contentPaddingBottom = 80,
 }) => {
   const { t, language } = useLanguage();
   const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isListening, setIsListening] = useState<boolean>(false);
+  const lastOffsetY = useRef<number>(0);
 
   const filteredLogs = useMemo(() => {
     let list = groupedLogs;
@@ -103,6 +111,20 @@ export const CallLogList: React.FC<CallLogListProps> = ({
     }
   };
 
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    const isAtTop = currentOffset <= 15;
+    const diff = currentOffset - lastOffsetY.current;
+
+    if (isAtTop) {
+      onScrollDirectionChange?.(false, true);
+    } else if (Math.abs(diff) > 8) {
+      const isScrollingDown = diff > 0;
+      onScrollDirectionChange?.(isScrollingDown, false);
+    }
+    lastOffsetY.current = currentOffset;
+  };
+
   return (
     <View style={styles.container}>
       {/* Search Bar */}
@@ -127,12 +149,16 @@ export const CallLogList: React.FC<CallLogListProps> = ({
           onPress={handleVoiceSearch}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <AppIcon name={isListening ? 'mic' : 'mic-outline'} size={18} color={isListening ? '#DC2626' : '#64748B'} />
+          <AppIcon name={isListening ? 'mic' : 'mic-outline'} size={20} color={isListening ? '#DC2626' : '#64748B'} />
         </TouchableOpacity>
       </View>
 
       {/* Filter Tabs */}
-      <View style={styles.filterRow}>
+      <ScrollView 
+      contentContainerStyle={styles.filterRow}
+      showsHorizontalScrollIndicator={false}
+      horizontal
+      >
         {(['ALL', 'MISSED', 'INCOMING', 'OUTGOING'] as FilterTab[]).map((tab) => {
           const isSelected = activeFilter === tab;
           return (
@@ -152,7 +178,7 @@ export const CallLogList: React.FC<CallLogListProps> = ({
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* Call Log List */}
       {isLoading && groupedLogs.length === 0 ? (
@@ -173,10 +199,12 @@ export const CallLogList: React.FC<CallLogListProps> = ({
               onSelectContact={onSelectContact}
             />
           )}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={onRefresh} colors={['#2563EB']} />
           }
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: contentPaddingBottom }]}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <AppIcon name="call-outline" size={48} color="#94A3B8" style={{ alignSelf: 'center', marginBottom: 8 }} />
@@ -243,14 +271,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   filterRow: {
-    flexDirection: 'row',
+    gap:5,
     paddingHorizontal: 16,
-    marginBottom: 10,
-    gap: 8,
+    maxHeight: 36
   },
   filterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    height: 32,
+    justifyContent:'center',
+    paddingHorizontal: 12,
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
@@ -261,7 +289,7 @@ const styles = StyleSheet.create({
     borderColor: '#2563EB',
   },
   filterChipText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#64748B',
   },
