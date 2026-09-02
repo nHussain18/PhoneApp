@@ -166,7 +166,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
       </View>
 
       {/* Quick Action Bar (when number entered) */}
-      {inputNumber.length > 0 && (
+      {/* {inputNumber.length > 0 && (
         <View style={styles.actionBar}>
           <TouchableOpacity
             style={styles.actionChip}
@@ -187,7 +187,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
             <Text style={styles.actionChipText}>{t('sms')}</Text>
           </TouchableOpacity>
         </View>
-      )}
+      )} */}
 
       {/* Keypad 3x4 Grid */}
       <View style={styles.keypadGrid}>
