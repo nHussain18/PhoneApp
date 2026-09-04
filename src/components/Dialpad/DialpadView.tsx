@@ -239,7 +239,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
             onLongPress={handleClear}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <AppIcon name="backspace" size={26} color="#475569" />
+            <AppIcon name="backspace" size={32} color="#475569" />
           </TouchableOpacity>
         )}
       </View>
