@@ -1,9 +1,16 @@
-name: preview
-on: pull_request
+name: EAS Preview Update
+
+on:
+  push:
+    branches:
+      - preview
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   update:
-    name: EAS Update
+    name: EAS Update (Preview Channel - Android)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -17,13 +24,12 @@ jobs:
           fi
 
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
@@ -34,7 +40,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Create preview
+      - name: Publish EAS Update to preview channel (on Push / Manual)
+        if: github.event_name != 'pull_request'
+        run: eas update --channel preview --platform android --auto
+
+      - name: Create preview & PR comment (on Pull Request)
+        if: github.event_name == 'pull_request'
         uses: expo/expo-github-action/preview@v8
         with:
-          command: eas update --auto 
+          command: eas update --channel preview --platform android --auto

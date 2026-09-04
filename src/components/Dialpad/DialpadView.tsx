@@ -197,11 +197,11 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
             style={styles.keyButton}
             onPress={() => handleKeyPress(k.digit)}
             onLongPress={k.digit === '0' ? handleZeroLongPress : undefined}
-            android_disableSound={true}
+            android_disableSound={false}
             android_ripple={{
               color: '#E2E8F0',
               borderless: true,
-              radius: 36,
+              radius: 40,
             }}
           >
             <Text style={styles.digitText}>{k.digit}</Text>
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   keyButton: {
     width: (Dimensions.get('window').width - 40 - 20) / 3,
-    height: 56,
+    height: 58,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   callButton: {
-    width: 58,
+    width: 78,
     height: 58,
     borderRadius: 29,
     backgroundColor: '#16A34A',
