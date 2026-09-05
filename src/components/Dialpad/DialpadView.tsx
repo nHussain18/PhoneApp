@@ -25,7 +25,7 @@ interface DialpadViewProps {
 }
 
 const KEYS = [
-  { digit: '1', letters: '', hindi: '' },
+  { digit: '1', letters: '', hindi: '', iconName: 'recording-outline' as const },
   { digit: '2', letters: 'ABC', hindi: 'अ क ग' },
   { digit: '3', letters: 'DEF', hindi: 'च छ ज' },
   { digit: '4', letters: 'GHI', hindi: 'ट ठ ड' },
@@ -201,11 +201,14 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
             android_ripple={{
               color: '#E2E8F0',
               borderless: true,
-              radius: 40,
+              radius: 45,
+              alpha: 0.3
             }}
           >
             <Text style={styles.digitText}>{k.digit}</Text>
-            {k.letters ? (
+            {k?.iconName ? (
+              <AppIcon name={k.iconName} size={13} color="#64748B" />
+            ) : k.letters ? (
               <Text
                 style={styles.lettersText}
                 numberOfLines={1}
@@ -214,7 +217,9 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
               >
                 {language === 'hi' && k.hindi ? k.hindi : k.letters}
               </Text>
-            ) : null}
+            ) : (
+              <View style={styles.keyEmptyPlaceholder} />
+            )}
           </Pressable>
         ))}
       </View>
@@ -230,7 +235,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
           disabled={!inputNumber}
           activeOpacity={0.8}
         >
-          <AppIcon name="call" size={32} color="#FFFFFF" />
+          <AppIcon name="call" size={28} color="#FFFFFF" />
         </TouchableOpacity>
         {inputNumber.length > 0 && (
           <TouchableOpacity
@@ -341,21 +346,25 @@ const styles = StyleSheet.create({
   },
   keyButton: {
     width: (Dimensions.get('window').width - 40 - 20) / 3,
-    height: 58,
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
   digitText: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '900',
     color: '#0F172A',
-    lineHeight: 32,
+    lineHeight: 38,
   },
   lettersText: {
     fontSize: 9,
     fontWeight: '600',
     color: '#64748B',
     textAlign: 'center',
+    height: 12,
+  },
+  keyEmptyPlaceholder: {
+    height: 12,
   },
   callRow: {
     flexDirection: 'row',
