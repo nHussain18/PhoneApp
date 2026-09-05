@@ -237,10 +237,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'android' ? 14 : 6,
-    paddingBottom: 12,
+    paddingBottom: 8,
     backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#F1F5F9',
   },
   headerTitle: {
     fontSize: 26,

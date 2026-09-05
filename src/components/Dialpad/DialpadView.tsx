@@ -230,7 +230,7 @@ export const DialpadView: React.FC<DialpadViewProps> = ({
           disabled={!inputNumber}
           activeOpacity={0.8}
         >
-          <AppIcon name="call" size={28} color="#FFFFFF" />
+          <AppIcon name="call" size={32} color="#FFFFFF" />
         </TouchableOpacity>
         {inputNumber.length > 0 && (
           <TouchableOpacity
