@@ -109,6 +109,16 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     return list;
   }, [contacts, selectedLetter, searchQuery]);
 
+  const regularContacts = useMemo(() => {
+    // When searching or filtering by letter, show all matching contacts
+    if (searchQuery.trim().length > 0 || selectedLetter) {
+      return filteredContacts;
+    }
+    // When showing the full contacts list with favorites on top,
+    // don't duplicate favorite contacts in the regular list below
+    return filteredContacts.filter((c) => !c.isFavorite);
+  }, [filteredContacts, searchQuery, selectedLetter]);
+
   const handleVoiceSearch = async () => {
     ActionService.triggerHaptic('impactMedium');
     setIsListening(true);
@@ -235,14 +245,6 @@ export const ContactsList: React.FC<ContactsListProps> = ({
         </View>
       )}
 
-      {/* Speed Dial / Favorites Row */}
-      {!searchQuery && !selectedLetter && (
-        <FavoritesGrid
-          favorites={favorites}
-          onSelectContact={(c) => setSelectedContact(c)}
-        />
-      )}
-
       {/* Main Contacts List */}
       {isLoading && contacts.length === 0 ? (
         <View style={styles.centerContainer}>
@@ -251,23 +253,36 @@ export const ContactsList: React.FC<ContactsListProps> = ({
         </View>
       ) : (
         <FlatList
-          data={filteredContacts}
+          data={regularContacts}
           keyExtractor={(item) => item.id}
           renderItem={renderContactItem}
+          ListHeaderComponent={
+            !searchQuery && !selectedLetter && favorites.length > 0 ? (
+              <FavoritesGrid
+                favorites={favorites}
+                onSelectContact={(c) => setSelectedContact(c)}
+                onCall={(phone) => handleCall(phone)}
+                onWhatsApp={(phone) => handleWhatsApp(phone)}
+                hasOtherContacts={regularContacts.length > 0}
+              />
+            ) : null
+          }
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={onRefresh} colors={['#2563EB']} />
           }
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <AppIcon name="person-outline" size={48} color="#94A3B8" style={{ alignSelf: 'center', marginBottom: 8 }} />
-              <Text style={styles.emptyTitle}>{t('noContactsFound')}</Text>
-              <Text style={styles.emptySubtitle}>
-                {searchQuery
-                  ? t('noContactsQuery')
-                  : t('noContactsDevice')}
-              </Text>
-            </View>
+            (!favorites.length || searchQuery || selectedLetter) ? (
+              <View style={styles.emptyContainer}>
+                <AppIcon name="person-outline" size={48} color="#94A3B8" style={{ alignSelf: 'center', marginBottom: 8 }} />
+                <Text style={styles.emptyTitle}>{t('noContactsFound')}</Text>
+                <Text style={styles.emptySubtitle}>
+                  {searchQuery
+                    ? t('noContactsQuery')
+                    : t('noContactsDevice')}
+                </Text>
+              </View>
+            ) : null
           }
         />
       )}
@@ -391,84 +406,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 80,
     paddingTop: 4,
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginHorizontal: 16,
-    marginBottom: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#3B82F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatarImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: 12,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  contactInfo: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  contactName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-    flexShrink: 1,
-  },
-  starIcon: {
-    fontSize: 12,
-  },
-  contactPhone: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 2,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginLeft: 8,
-  },
-  whatsAppButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#DCFCE7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  callButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#E0F2FE',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnIcon: {
-    fontSize: 16,
   },
   centerContainer: {
     flex: 1,

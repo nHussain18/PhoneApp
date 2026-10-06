@@ -57,7 +57,10 @@ export const ContactListItem: React.FC<ContactListItemProps> = ({
 
   return (
     <TouchableOpacity
-      style={styles.contactItem}
+      style={[
+        styles.contactItem,
+        contact.isFavorite && styles.favoriteContactItem,
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
@@ -110,6 +113,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.02,
     shadowRadius: 2,
     elevation: 1,
+  },
+  favoriteContactItem: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
   },
   avatar: {
     width: 42,

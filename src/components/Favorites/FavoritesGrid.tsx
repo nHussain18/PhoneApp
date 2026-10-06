@@ -1,25 +1,27 @@
 import React from 'react';
 import {
-  Image,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { ActionService } from '../../services/ActionService';
 import { PhoneContact } from '../../services/ContactsService';
 import { useLanguage } from '../../services/LanguageContext';
-import { AppIcon } from '../Common/AppIcon';
+import { ContactListItem } from '../Contacts/ContactListItem';
 
 interface FavoritesGridProps {
   favorites: PhoneContact[];
   onSelectContact: (contact: PhoneContact) => void;
+  onCall?: (phoneNumber: string) => void;
+  onWhatsApp?: (phoneNumber: string) => void;
+  hasOtherContacts?: boolean;
 }
 
 export const FavoritesGrid: React.FC<FavoritesGridProps> = ({
   favorites,
   onSelectContact,
+  onCall,
+  onWhatsApp,
+  hasOtherContacts = false,
 }) => {
   const { t } = useLanguage();
   if (!favorites || favorites.length === 0) {
@@ -29,55 +31,30 @@ export const FavoritesGrid: React.FC<FavoritesGridProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionHeader}>{t('favoritesTitle')}</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollList}
-      >
-        {favorites.map((contact) => {
-          const initial = contact.name ? contact.name.charAt(0).toUpperCase() : '#';
-          const primaryPhone = contact.phoneNumbers[0]?.number || '';
-
-          return (
-            <TouchableOpacity
-              key={contact.id}
-              style={styles.card}
-              onPress={() => onSelectContact(contact)}
-              activeOpacity={0.7}
-            >
-              {contact.imageUri ? (
-                <Image source={{ uri: contact.imageUri }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initial}</Text>
-                </View>
-              )}
-
-              <Text style={styles.nameText} numberOfLines={1}>
-                {contact.name}
-              </Text>
-
-              <TouchableOpacity
-                style={styles.callButton}
-                onPress={() => ActionService.placeCall(primaryPhone)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <AppIcon name="call" size={14} color="#FFFFFF" />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      <View style={styles.list}>
+        {favorites.map((contact) => (
+          <ContactListItem
+            key={`fav-${contact.id}`}
+            contact={contact}
+            onSelect={onSelectContact}
+            onCall={onCall}
+            onWhatsApp={onWhatsApp}
+          />
+        ))}
+      </View>
+      {hasOtherContacts && (
+        <Text style={[styles.sectionHeader, styles.contactsHeader]}>
+          {t('contacts')}
+        </Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingTop: 8,
+    paddingBottom: 2,
   },
   sectionHeader: {
     fontSize: 12,
@@ -86,57 +63,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     paddingHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  scrollList: {
-    paddingHorizontal: 16,
-    gap: 14,
+  contactsHeader: {
+    marginTop: 10,
+    marginBottom: 8,
   },
-  card: {
-    width: 76,
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#3B82F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-    shadowColor: '#2563EB',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  avatarImage: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    marginBottom: 6,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  nameText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1E293B',
-    textAlign: 'center',
+  list: {
     width: '100%',
-    marginBottom: 4,
-  },
-  callButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#DCFCE7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  callIcon: {
-    fontSize: 12,
   },
 });
